@@ -10,11 +10,6 @@ module.exports = async (req, res) => {
         prettyPrint: false
       }
     });
-      logger: {
-        level: 'info',
-        prettyPrint: false
-      }
-    });
     await app.ready();
   }
 
