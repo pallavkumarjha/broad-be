@@ -2,72 +2,93 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { supabaseService } from '../config/supabase.js';
 import { successResponse, CommonErrors } from '../utils/response.js';
 import {
-  PhoneLoginSchema,
-  VerifyOTPSchema,
-  PhoneSignupSchema,
-  PhoneLoginInput,
-  VerifyOTPInput,
-  PhoneSignupInput
+  UnifiedPhoneAuthSchema,
+  UnifiedVerifyOTPSchema,
+  UnifiedPhoneAuthInput,
+  UnifiedVerifyOTPInput
 } from '../schemas/index.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
   
-  // Send OTP to phone number for login
-  fastify.post('/login/phone', {
+  // Unified phone auth - automatically handles login/signup
+  fastify.post('/phone', {
     schema: {
       tags: ['Authentication'],
-      summary: 'Send OTP to phone number for login',
+      summary: 'Send OTP to phone number (unified login/signup)',
       body: {
         type: 'object',
         required: ['phone'],
         properties: {
           phone: { 
             type: 'string', 
-            pattern: '^\\+[1-9]\\d{1,14}$',
-            description: 'Phone number in E.164 format (e.g., +1234567890)'
+            description: 'Phone number'
           }
         }
       }
     }
-  }, async (request: FastifyRequest<{ Body: PhoneLoginInput }>, reply: FastifyReply) => {
+  }, async (request: FastifyRequest<{ Body: UnifiedPhoneAuthInput }>, reply: FastifyReply) => {
     try {
-      const { phone } = PhoneLoginSchema.parse(request.body);
+      const { phone } = UnifiedPhoneAuthSchema.parse(request.body);
 
+      // Check if user already exists
+      const { data: existingUsers } = await supabaseService
+        .from('profiles')
+        .select('phone_number, display_name')
+        .eq('phone_number', phone);
+      
+      const userExists = existingUsers && existingUsers.length > 0;
+
+      // Send OTP
       const { error } = await supabaseService.auth.signInWithOtp({
         phone,
         options: {
-          shouldCreateUser: false // Only allow existing users to login
+          shouldCreateUser: !userExists, // Create user only if they don't exist
+          data: !userExists ? {
+            display_name: `User ${phone.slice(-4)}`, // Generate a simple display name
+            handle: null
+          } : undefined
         }
       });
 
       if (error) {
-        if (error.message.includes('User not found')) {
-          return reply.code(404).send(CommonErrors.NOT_FOUND('User with this phone number'));
+        fastify.log.error({ 
+          error, 
+          errorMessage: error.message, 
+          errorCode: error.code,
+          errorStatus: error.status,
+          fullError: JSON.stringify(error, null, 2)
+        }, 'Unified phone auth error');
+        
+        // Handle Supabase validation errors more gracefully
+        if (error.code === 'validation_failed') {
+          return reply.code(400).send(CommonErrors.BAD_REQUEST('Invalid phone number provided'));
         }
-        fastify.log.error({ error }, 'Phone login error');
+        
         return reply.code(400).send(CommonErrors.BAD_REQUEST(error.message));
       }
 
-      return reply.send(successResponse({ message: 'OTP sent successfully' }));
+      return reply.send(successResponse({ 
+        message: 'OTP sent successfully',
+        isNewUser: !userExists
+      }));
     } catch (error) {
-      fastify.log.error({ error }, 'Phone login exception');
+      fastify.log.error({ error }, 'Unified phone auth exception');
       return reply.code(500).send(CommonErrors.INTERNAL_ERROR());
     }
   });
 
-  // Verify OTP and get JWT token
-  fastify.post('/verify-otp', {
+  // Unified OTP verification
+  fastify.post('/verify', {
     schema: {
       tags: ['Authentication'],
-      summary: 'Verify OTP and get JWT token',
+      summary: 'Verify OTP (unified for login/signup)',
       body: {
         type: 'object',
         required: ['phone', 'token'],
         properties: {
           phone: { 
             type: 'string', 
-            pattern: '^\\+[1-9]\\d{1,14}$',
-            description: 'Phone number in E.164 format'
+            description: 'Phone number'
           },
           token: { 
             type: 'string', 
@@ -78,9 +99,9 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
       }
     }
-  }, async (request: FastifyRequest<{ Body: VerifyOTPInput }>, reply: FastifyReply) => {
+  }, async (request: FastifyRequest<{ Body: UnifiedVerifyOTPInput }>, reply: FastifyReply) => {
     try {
-      const { phone, token } = VerifyOTPSchema.parse(request.body);
+      const { phone, token } = UnifiedVerifyOTPSchema.parse(request.body);
 
       const { data, error } = await supabaseService.auth.verifyOtp({
         phone,
@@ -97,16 +118,40 @@ export async function authRoutes(fastify: FastifyInstance) {
         return reply.code(400).send(CommonErrors.BAD_REQUEST('Verification failed'));
       }
 
-      // Get user profile
-      const { data: profile, error: profileError } = await supabaseService
+      // Check if this is a new user (profile doesn't exist yet)
+      let { data: profile, error: profileError } = await supabaseService
         .from('profiles')
         .select('*')
-        .eq('user_id', data.user.id)
+        .eq('id', data.user.id)
         .single();
 
-      if (profileError) {
+      let isNewUser = false;
+
+      // If profile doesn't exist, create it
+      if (profileError && profileError.code === 'PGRST116') { // No rows returned
+        // Create new profile with auto-generated display name
+        const { data: newProfile, error: createError } = await supabaseService
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            phone_number: phone,
+            display_name: `User ${phone.slice(-4)}`, // Generate a simple display name
+            handle: null,
+            role: 'rider'
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          fastify.log.error({ error: createError }, 'Profile creation error');
+          return reply.code(500).send(CommonErrors.INTERNAL_ERROR());
+        }
+
+        profile = newProfile;
+        isNewUser = true;
+      } else if (profileError) {
         fastify.log.error({ error: profileError }, 'Profile fetch error');
-        return reply.code(404).send(CommonErrors.NOT_FOUND('User profile'));
+        return reply.code(500).send(CommonErrors.INTERNAL_ERROR());
       }
 
       return reply.send(successResponse({
@@ -120,89 +165,11 @@ export async function authRoutes(fastify: FastifyInstance) {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
           expires_at: data.session.expires_at
-        }
+        },
+        isNewUser
       }));
     } catch (error) {
-      fastify.log.error({ error }, 'OTP verification exception');
-      return reply.code(500).send(CommonErrors.INTERNAL_ERROR());
-    }
-  });
-
-  // Sign up with phone number
-  fastify.post('/signup/phone', {
-    schema: {
-      tags: ['Authentication'],
-      summary: 'Sign up with phone number and send OTP',
-      body: {
-        type: 'object',
-        required: ['phone', 'displayName'],
-        properties: {
-          phone: { 
-            type: 'string', 
-            pattern: '^\\+[1-9]\\d{1,14}$',
-            description: 'Phone number in E.164 format'
-          },
-          displayName: { 
-            type: 'string', 
-            minLength: 1, 
-            maxLength: 100 
-          },
-          handle: { 
-            type: 'string', 
-            minLength: 3, 
-            maxLength: 30, 
-            pattern: '^[a-zA-Z0-9_]+$' 
-          }
-        }
-      }
-    }
-  }, async (request: FastifyRequest<{ Body: PhoneSignupInput }>, reply: FastifyReply) => {
-    try {
-      const { phone, displayName, handle } = PhoneSignupSchema.parse(request.body);
-
-      // Check if user already exists with phone
-      const { data: existingUsers } = await supabaseService
-        .from('profiles')
-        .select('phone_number')
-        .eq('phone_number', phone);
-      
-      if (existingUsers && existingUsers.length > 0) {
-        return reply.code(409).send(CommonErrors.CONFLICT('User with this phone number already exists'));
-      }
-
-      // Check if handle is taken (if provided)
-      if (handle) {
-        const { data: existingProfile } = await supabaseService
-          .from('profiles')
-          .select('id')
-          .eq('handle', handle)
-          .single();
-        
-        if (existingProfile) {
-          return reply.code(409).send(CommonErrors.CONFLICT('Handle is already taken'));
-        }
-      }
-
-      // Send OTP for signup
-      const { error } = await supabaseService.auth.signInWithOtp({
-        phone,
-        options: {
-          shouldCreateUser: true,
-          data: {
-            display_name: displayName,
-            handle: handle || null
-          }
-        }
-      });
-
-      if (error) {
-        fastify.log.error({ error }, 'Phone signup error');
-        return reply.code(400).send(CommonErrors.BAD_REQUEST(error.message));
-      }
-
-      return reply.send(successResponse({ message: 'OTP sent successfully' }));
-    } catch (error) {
-      fastify.log.error({ error }, 'Phone signup exception');
+      fastify.log.error({ error }, 'Unified OTP verification exception');
       return reply.code(500).send(CommonErrors.INTERNAL_ERROR());
     }
   });

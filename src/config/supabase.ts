@@ -8,7 +8,6 @@ export interface Database {
       profiles: {
         Row: {
           id: string;
-          user_id: string;
           handle: string | null;
           display_name: string;
           bio: string | null;
@@ -26,7 +25,6 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          user_id: string;
           handle?: string | null;
           display_name: string;
           bio?: string | null;
@@ -44,7 +42,6 @@ export interface Database {
         };
         Update: {
           id?: string;
-          user_id?: string;
           handle?: string | null;
           display_name?: string;
           bio?: string | null;

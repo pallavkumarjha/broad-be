@@ -128,7 +128,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
 
       const profileData = {
         ...request.body,
-        user_id: userId
+        id: userId
       };
 
       const profile = await profileService.createProfile(profileData);
@@ -202,7 +202,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Profile'));
       }
 
-      if (existingProfile.user_id !== userId) {
+      if (existingProfile.id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -249,7 +249,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Profile'));
       }
 
-      if (existingProfile.user_id !== userId) {
+      if (existingProfile.id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -295,7 +295,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Profile'));
       }
 
-      if (existingProfile.user_id !== userId) {
+      if (existingProfile.id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -397,7 +397,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Profile'));
       }
 
-      if (existingProfile.user_id !== userId) {
+      if (existingProfile.id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 

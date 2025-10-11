@@ -118,34 +118,16 @@ export const CreateBookingSchema = z.object({
   rideId: UuidSchema,
 });
 
-// Auth schemas
-export const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+
+
+// Unified auth schemas
+export const UnifiedPhoneAuthSchema = z.object({
+  phone: z.string(),
 });
 
-// Phone OTP schemas
-export const PhoneLoginSchema = z.object({
-  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Phone number must be in E.164 format (e.g., +1234567890)'),
-});
-
-export const VerifyOTPSchema = z.object({
-  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Phone number must be in E.164 format'),
+export const UnifiedVerifyOTPSchema = z.object({
+  phone: z.string(),
   token: z.string().length(6, 'OTP must be 6 digits'),
-});
-
-export const SignupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  displayName: z.string().min(1).max(100),
-  handle: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/).optional(),
-});
-
-// Phone-based signup
-export const PhoneSignupSchema = z.object({
-  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Phone number must be in E.164 format'),
-  displayName: z.string().min(1).max(100),
-  handle: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_]+$/).optional(),
 });
 
 // Export all schema types
@@ -161,8 +143,6 @@ export type UpdateMotorcycleInput = z.infer<typeof UpdateMotorcycleSchema>;
 export type CreateMaintenanceLogInput = z.infer<typeof CreateMaintenanceLogSchema>;
 export type UpdateMaintenanceLogInput = z.infer<typeof UpdateMaintenanceLogSchema>;
 export type CreateBookingInput = z.infer<typeof CreateBookingSchema>;
-export type LoginInput = z.infer<typeof LoginSchema>;
-export type SignupInput = z.infer<typeof SignupSchema>;
-export type PhoneLoginInput = z.infer<typeof PhoneLoginSchema>;
-export type VerifyOTPInput = z.infer<typeof VerifyOTPSchema>;
-export type PhoneSignupInput = z.infer<typeof PhoneSignupSchema>;
+
+export type UnifiedPhoneAuthInput = z.infer<typeof UnifiedPhoneAuthSchema>;
+export type UnifiedVerifyOTPInput = z.infer<typeof UnifiedVerifyOTPSchema>;
