@@ -1,15 +1,10 @@
-const { build } = require('../dist/server');
+const { createServer } = require('../dist/server');
 
 let app;
 
 module.exports = async (req, res) => {
   if (!app) {
-    app = await build({
-      logger: {
-        level: 'info',
-        prettyPrint: false
-      }
-    });
+    app = await createServer();
     await app.ready();
   }
 

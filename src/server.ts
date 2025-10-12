@@ -2,9 +2,9 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import { env } from './config/env.js';
-import { successResponse, errorResponse } from './utils/response.js';
-import { registerRoutes } from './routes/index.js';
+import { env } from './config/env';
+import { successResponse, errorResponse } from './utils/response';
+import { registerRoutes } from './routes/index';
 
 // Create and configure Fastify server
 async function createServer() {
@@ -168,7 +168,7 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start the server if this file is run directly
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+if (require.main === module) {
   start();
 }
 
