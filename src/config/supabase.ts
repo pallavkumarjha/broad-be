@@ -13,8 +13,7 @@ export interface Database {
           bio: string | null;
           avatar_url: string | null;
           country_code: string | null;
-          phone: string | null;
-          email: string;
+          phone_number: string | null;
           expo_push_token: string | null;
           role: string;
           is_available: boolean;
@@ -30,8 +29,7 @@ export interface Database {
           bio?: string | null;
           avatar_url?: string | null;
           country_code?: string | null;
-          phone?: string | null;
-          email: string;
+          phone_number?: string | null;
           expo_push_token?: string | null;
           role?: string;
           is_available?: boolean;
@@ -47,8 +45,7 @@ export interface Database {
           bio?: string | null;
           avatar_url?: string | null;
           country_code?: string | null;
-          phone?: string | null;
-          email?: string;
+          phone_number?: string | null;
           expo_push_token?: string | null;
           role?: string;
           is_available?: boolean;

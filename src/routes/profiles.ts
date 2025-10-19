@@ -187,6 +187,15 @@ export async function profileRoutes(fastify: FastifyInstance) {
           },
           expoPushToken: { 
             type: 'string' 
+          },
+          currentLocation: {
+            type: 'object',
+            properties: {
+              latitude: { type: 'number', minimum: -90, maximum: 90 },
+              longitude: { type: 'number', minimum: -180, maximum: 180 },
+              address: { type: 'string', maxLength: 255 }
+            },
+            required: ['latitude', 'longitude']
           }
         }
       }
@@ -206,7 +215,27 @@ export async function profileRoutes(fastify: FastifyInstance) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
-      const updatedProfile = await profileService.updateProfile(id, request.body);
+      // Map frontend fields to database column names
+      const updateData: any = {};
+      const body = request.body;
+
+      // Handle field mapping
+      if (body.fullName !== undefined) updateData.display_name = body.fullName;
+      if (body.displayName !== undefined) updateData.display_name = body.displayName;
+      if (body.handle !== undefined) updateData.handle = body.handle;
+      if (body.bio !== undefined) updateData.bio = body.bio;
+      if (body.avatarUrl !== undefined) updateData.avatar_url = body.avatarUrl;
+      if (body.countryCode !== undefined) updateData.country_code = body.countryCode;
+      if (body.phoneNumber !== undefined) updateData.phone_number = body.phoneNumber;
+      if (body.expoPushToken !== undefined) updateData.expo_push_token = body.expoPushToken;
+      
+      // Handle location data
+      if (body.currentLocation) {
+        updateData.latitude = body.currentLocation.latitude;
+        updateData.longitude = body.currentLocation.longitude;
+      }
+
+      const updatedProfile = await profileService.updateProfile(id, updateData);
       return reply.send(successResponse(updatedProfile));
     } catch (error) {
       fastify.log.error(error);

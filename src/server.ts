@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import cors from '@fastify/cors';
+import type { FastifyCorsOptions } from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env';
@@ -23,15 +24,23 @@ async function createServer() {
     }
   });
 
-  // Register CORS
-  await server.register(cors, {
+  const corsOptions: FastifyCorsOptions = {
     origin: env.NODE_ENV === 'development' ? true : [
       'https://broad.app',
       'https://www.broad.app',
       /\.broad\.app$/,
+      'http://localhost:8081',
+      /^http:\/\/localhost:\\d+$/,
+      /^http:\/\/127\.0\.0\.1:\\d+$/,
     ],
     credentials: true,
-  });
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+    strictPreflight: false,
+  };
+
+  // Register CORS early so preflight requests resolve before auth hooks
+  await server.register(cors, corsOptions);
 
   // Register Swagger documentation
   await server.register(swagger, {
@@ -85,14 +94,14 @@ async function createServer() {
 
     if (statusCode >= 500) {
       return reply.code(statusCode).send(errorResponse(
-        statusCode,
+        'INTERNAL_ERROR',
         'Internal Server Error',
         env.NODE_ENV === 'development' ? error.message : undefined
       ));
     }
 
     return reply.code(statusCode).send(errorResponse(
-      statusCode,
+      'ERROR',
       error.message
     ));
   });
