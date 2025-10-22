@@ -102,6 +102,40 @@ export async function rideRoutes(fastify: FastifyInstance) {
             minimum: 2, 
             maximum: 50, 
             default: 10 
+          },
+          // New trip fields
+          name: { 
+            type: 'string', 
+            minLength: 1, 
+            maxLength: 200 
+          },
+          dateISO: { 
+            type: 'string', 
+            format: 'date' 
+          },
+          meetupISO: { 
+            type: 'string', 
+            format: 'date-time' 
+          },
+          meetLocation: { 
+            type: 'string', 
+            maxLength: 500 
+          },
+          distance: { 
+            type: 'string', 
+            enum: ['short', 'medium', 'long'] 
+          },
+          gearCallout: { 
+            type: 'string', 
+            maxLength: 1000 
+          },
+          commSignals: { 
+            type: 'array', 
+            items: { type: 'string' } 
+          },
+          safetyChecks: { 
+            type: 'array', 
+            items: { type: 'string' } 
           }
         }
       }
@@ -115,7 +149,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
 
       const rideData = {
         ...request.body,
-        created_by: userId
+        creator_id: userId
       };
 
       const ride = await rideService.createRide(rideData);
@@ -194,6 +228,40 @@ export async function rideRoutes(fastify: FastifyInstance) {
           status: { 
             type: 'string', 
             enum: ['scheduled', 'in_progress', 'completed', 'cancelled'] 
+          },
+          // New trip fields
+          name: { 
+            type: 'string', 
+            minLength: 1, 
+            maxLength: 200 
+          },
+          dateISO: { 
+            type: 'string', 
+            format: 'date' 
+          },
+          meetupISO: { 
+            type: 'string', 
+            format: 'date-time' 
+          },
+          meetLocation: { 
+            type: 'string', 
+            maxLength: 500 
+          },
+          distance: { 
+            type: 'string', 
+            enum: ['short', 'medium', 'long'] 
+          },
+          gearCallout: { 
+            type: 'string', 
+            maxLength: 1000 
+          },
+          commSignals: { 
+            type: 'array', 
+            items: { type: 'string' } 
+          },
+          safetyChecks: { 
+            type: 'array', 
+            items: { type: 'string' } 
           }
         }
       }
@@ -209,7 +277,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Ride'));
       }
 
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -258,7 +326,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Ride'));
       }
 
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -429,7 +497,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
       }
 
       // Only ride creator can see bookings
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -467,7 +535,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Ride'));
       }
 
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -510,7 +578,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Ride'));
       }
 
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -553,7 +621,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Ride'));
       }
 
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 
@@ -596,7 +664,7 @@ export async function rideRoutes(fastify: FastifyInstance) {
         return reply.code(404).send(CommonErrors.NOT_FOUND('Ride'));
       }
 
-      if (existingRide.created_by !== userId) {
+      if (existingRide.creator_id !== userId) {
         return reply.code(403).send(CommonErrors.FORBIDDEN());
       }
 

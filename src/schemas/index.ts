@@ -43,6 +43,15 @@ export const CreateRideSchema = z.object({
   pace: z.enum(['cruise', 'group', 'spirited']).optional(),
   experienceLevel: z.enum(['novice', 'intermediate', 'advanced']).optional(),
   maxRiders: z.number().int().min(2).max(50).default(10),
+  // New trip fields
+  name: z.string().min(1).max(200).optional(),
+  dateISO: z.string().date().optional(),
+  meetupISO: z.string().datetime().optional(),
+  meetLocation: z.string().max(500).optional(),
+  distance: z.enum(['short', 'medium', 'long']).optional(),
+  gearCallout: z.string().max(1000).optional(),
+  commSignals: z.array(z.string()).optional(),
+  safetyChecks: z.array(z.string()).optional(),
 });
 
 export const UpdateRideSchema = z.object({
@@ -55,6 +64,15 @@ export const UpdateRideSchema = z.object({
   experienceLevel: z.enum(['novice', 'intermediate', 'advanced']).optional(),
   maxRiders: z.number().int().min(2).max(50).optional(),
   status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']).optional(),
+  // New trip fields
+  name: z.string().min(1).max(200).optional(),
+  dateISO: z.string().date().optional(),
+  meetupISO: z.string().datetime().optional(),
+  meetLocation: z.string().max(500).optional(),
+  distance: z.enum(['short', 'medium', 'long']).optional(),
+  gearCallout: z.string().max(1000).optional(),
+  commSignals: z.array(z.string()).optional(),
+  safetyChecks: z.array(z.string()).optional(),
 });
 
 export const RideQuerySchema = z.object({

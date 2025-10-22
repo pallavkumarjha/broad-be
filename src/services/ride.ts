@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase, supabaseService } from '../config/supabase.js';
 
 export interface RideSearchParams {
   creator_id?: string;
@@ -16,7 +16,7 @@ export interface RideSearchParams {
 
 export class RideService {
   async getRideById(id: string) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .select('*')
       .eq('id', id)
@@ -30,7 +30,7 @@ export class RideService {
   }
 
   async getRidesByCreator(creatorId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .select('*')
       .eq('creator_id', creatorId)
@@ -45,7 +45,7 @@ export class RideService {
 
   async getUpcomingRides() {
     const now = new Date().toISOString();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .select('*')
       .gte('starts_at', now)
@@ -60,7 +60,7 @@ export class RideService {
   }
 
   async getRidesByStatus(status: string) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .select('*')
       .eq('status', status)
@@ -74,7 +74,7 @@ export class RideService {
   }
 
   async getRidesInDateRange(startDate: string, endDate: string) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .select('*')
       .gte('starts_at', startDate)
@@ -89,9 +89,42 @@ export class RideService {
   }
 
   async createRide(rideData: any) {
-    const { data, error } = await supabase
+    // Map frontend payload to database column names
+    const mappedData = {
+      ...rideData,
+      // Map existing fields to database columns
+      starts_at: rideData.startsAt,
+      meetup_location: rideData.meetupLocation,
+      experience_level: rideData.experienceLevel,
+      max_riders: rideData.maxRiders,
+      route_summary: rideData.routeSummary,
+      // Map new trip fields to database columns
+      name: rideData.name,
+      date_iso: rideData.dateISO,
+      meetup_iso: rideData.meetupISO,
+      meet_location: rideData.meetLocation,
+      distance: rideData.distance,
+      gear_callout: rideData.gearCallout,
+      comm_signals: rideData.commSignals,
+      safety_checks: rideData.safetyChecks,
+    };
+
+    // Remove frontend field names to avoid conflicts
+    delete mappedData.startsAt;
+    delete mappedData.meetupLocation;
+    delete mappedData.experienceLevel;
+    delete mappedData.maxRiders;
+    delete mappedData.routeSummary;
+    delete mappedData.dateISO;
+    delete mappedData.meetupISO;
+    delete mappedData.meetLocation;
+    delete mappedData.gearCallout;
+    delete mappedData.commSignals;
+    delete mappedData.safetyChecks;
+
+    const { data, error } = await supabaseService
       .from('rides')
-      .insert(rideData)
+      .insert(mappedData)
       .select()
       .single();
 
@@ -103,9 +136,42 @@ export class RideService {
   }
 
   async updateRide(id: string, updateData: any) {
-    const { data, error } = await supabase
+    // Map frontend payload to database column names
+    const mappedData = {
+      ...updateData,
+      // Map existing fields to database columns
+      starts_at: updateData.startsAt,
+      meetup_location: updateData.meetupLocation,
+      experience_level: updateData.experienceLevel,
+      max_riders: updateData.maxRiders,
+      route_summary: updateData.routeSummary,
+      // Map new trip fields to database columns
+      name: updateData.name,
+      date_iso: updateData.dateISO,
+      meetup_iso: updateData.meetupISO,
+      meet_location: updateData.meetLocation,
+      distance: updateData.distance,
+      gear_callout: updateData.gearCallout,
+      comm_signals: updateData.commSignals,
+      safety_checks: updateData.safetyChecks,
+    };
+
+    // Remove frontend field names to avoid conflicts
+    delete mappedData.startsAt;
+    delete mappedData.meetupLocation;
+    delete mappedData.experienceLevel;
+    delete mappedData.maxRiders;
+    delete mappedData.routeSummary;
+    delete mappedData.dateISO;
+    delete mappedData.meetupISO;
+    delete mappedData.meetLocation;
+    delete mappedData.gearCallout;
+    delete mappedData.commSignals;
+    delete mappedData.safetyChecks;
+
+    const { data, error } = await supabaseService
       .from('rides')
-      .update(updateData)
+      .update(mappedData)
       .eq('id', id)
       .select()
       .single();
@@ -131,7 +197,7 @@ export class RideService {
   }
 
   async updateRideStatus(id: string, status: string) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .update({ status })
       .eq('id', id)
@@ -177,7 +243,7 @@ export class RideService {
   }
 
   async getRidesWithBookings() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .select(`
         *,
@@ -198,7 +264,7 @@ export class RideService {
   }
 
   async cancelRide(id: string) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('rides')
       .update({ status: 'cancelled' })
       .eq('id', id)
