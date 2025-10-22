@@ -65,6 +65,15 @@ export interface RideDTO {
   experienceLevel: 'novice' | 'intermediate' | 'advanced' | null;
   maxRiders: number;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  // New trip fields
+  name?: string;
+  dateISO?: string;
+  meetupISO?: string;
+  meetLocation?: string;
+  distance?: 'short' | 'medium' | 'long';
+  gearCallout?: string;
+  commSignals?: string[];
+  safetyChecks?: string[];
   createdAt: string;
   updatedAt: string;
   // Populated fields
@@ -86,6 +95,15 @@ export interface CreateRideDTO {
   pace?: 'cruise' | 'group' | 'spirited';
   experienceLevel?: 'novice' | 'intermediate' | 'advanced';
   maxRiders?: number;
+  // New trip fields
+  name?: string;
+  dateISO?: string;
+  meetupISO?: string;
+  meetLocation?: string;
+  distance?: 'short' | 'medium' | 'long';
+  gearCallout?: string;
+  commSignals?: string[];
+  safetyChecks?: string[];
 }
 
 export interface UpdateRideDTO {
@@ -102,6 +120,15 @@ export interface UpdateRideDTO {
   experienceLevel?: 'novice' | 'intermediate' | 'advanced';
   maxRiders?: number;
   status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  // New trip fields
+  name?: string;
+  dateISO?: string;
+  meetupISO?: string;
+  meetLocation?: string;
+  distance?: 'short' | 'medium' | 'long';
+  gearCallout?: string;
+  commSignals?: string[];
+  safetyChecks?: string[];
 }
 
 // Garage DTOs

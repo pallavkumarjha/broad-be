@@ -68,6 +68,15 @@ export interface Database {
           experience_level: string | null;
           max_riders: number | null;
           status: string;
+          // New trip fields
+          name: string | null;
+          date_iso: string | null;
+          meetup_iso: string | null;
+          meet_location: string | null;
+          distance: string | null;
+          gear_callout: string | null;
+          comm_signals: string[] | null;
+          safety_checks: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -83,6 +92,15 @@ export interface Database {
           experience_level?: string | null;
           max_riders?: number | null;
           status?: string;
+          // New trip fields
+          name?: string | null;
+          date_iso?: string | null;
+          meetup_iso?: string | null;
+          meet_location?: string | null;
+          distance?: string | null;
+          gear_callout?: string | null;
+          comm_signals?: string[] | null;
+          safety_checks?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -98,6 +116,15 @@ export interface Database {
           experience_level?: string | null;
           max_riders?: number | null;
           status?: string;
+          // New trip fields
+          name?: string | null;
+          date_iso?: string | null;
+          meetup_iso?: string | null;
+          meet_location?: string | null;
+          distance?: string | null;
+          gear_callout?: string | null;
+          comm_signals?: string[] | null;
+          safety_checks?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
